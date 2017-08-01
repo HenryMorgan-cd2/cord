@@ -5,15 +5,20 @@ class ApiBaseController < ActionController::API
   end
 
   def index
-    ids = params[:ids]
-    attributes = params[:attributes]
-    render json: api.need_a_name(ids: ids, attributes: attributes)
+    if action = params[:action_name]
+      result = api.trigger(action, params)
+    else
+      ids = params[:ids]
+      attributes = params[:attributes]
+      result = api.get(ids: ids, attributes: attributes)
+    end
+    render json: result
   end
 
   private
 
   def api
-    ArticlesApi.new
+    @api ||= "#{params[:api].camelize}Api".constantize.new
   end
 
 end

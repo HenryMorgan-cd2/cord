@@ -12,13 +12,12 @@ class ArticlesApi < BaseApi
 	belongs_to :author  # adds methods: author, author_id
 	# has_one :page # adds methods: forum
 
-
 	attribute :view_count # adds attribute called view_count which calls same named model method
 	attribute :score do |article| # attribute with block, block is passed the current record
 		article.id * 10
 	end
 
-  # mutations
+  ########## MUTATIONS
 
   permitted_params :name, :body, :created_at #blobvious
   # before_create do |record| # callbacks
@@ -31,6 +30,7 @@ class ArticlesApi < BaseApi
   ########## ACTIONS
 
   action :vote_up do # collection method
+    byebug
     driver.vote_up!
   end
 
