@@ -4,12 +4,23 @@ module DSL
   end
 
   def driver
-    self.class.driver || raise('No api driver set')
+    @driver ||= begin
+      block = self.class.instance_variable_get(:@driver) || raise('No api driver set')
+      instance_exec &block
+    end
   end
 
   def model
     return driver if driver <= ActiveRecord::Base
     driver.model
+  end
+
+  def columns
+    self.class.columns
+  end
+
+  def ignore_columns
+    self.class.ignore_columns
   end
 
   def scopes
@@ -34,9 +45,19 @@ module DSL
 
   module ClassMethods
 
-    def driver driver=nil
-      return @driver if driver.nil?
-      @driver ||= driver
+    def driver driver=nil, &block
+      block = -> { driver } unless block.present?
+      @driver = block
+    end
+
+    def columns *cols
+      @columns ||= []
+      @columns += cols
+    end
+
+    def ignore_columns *cols
+      @ignore_columns ||= []
+      @ignore_columns += cols
     end
 
     def scopes
@@ -51,7 +72,9 @@ module DSL
     # has_many :books
     # book_ids, books, book_count
     def has_many association_name
-      self.attribute association_name
+      self.attribute association_name do |record|
+        record.send(association_name)
+      end
       single = association_name.to_s.singularize
       self.attribute "#{single}_ids"
       self.attribute "#{single}_count" do |record|
