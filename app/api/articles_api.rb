@@ -5,7 +5,11 @@ class ArticlesApi < BaseApi
 
   driver Article.published # limit all results to a subset of the model
 	driver do
-    Article.published.limit(4)
+    if params[:tag]
+      Article.published.where('body LIKE ?', "%#{params[:tag]}%")
+    else
+      Article.published
+    end
 	end
 
   # columns :id, :name, :created_at #whitelist columns
